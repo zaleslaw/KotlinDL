@@ -12,11 +12,7 @@ import org.jetbrains.kotlinx.dl.api.core.initializer.*
 import org.jetbrains.kotlinx.dl.api.core.layer.Dense
 import org.jetbrains.kotlinx.dl.api.core.layer.Flatten
 import org.jetbrains.kotlinx.dl.api.core.layer.Layer
-import org.jetbrains.kotlinx.dl.api.core.layer.twodim.AvgPool2D
-import org.jetbrains.kotlinx.dl.api.core.layer.twodim.Conv2D
-import org.jetbrains.kotlinx.dl.api.core.layer.twodim.ConvPadding
-import org.jetbrains.kotlinx.dl.api.core.layer.twodim.MaxPool2D
-import org.jetbrains.kotlinx.dl.api.core.layer.twodim.ZeroPadding2D
+import org.jetbrains.kotlinx.dl.api.core.layer.twodim.*
 import org.jetbrains.kotlinx.dl.api.inference.keras.config.*
 import java.io.File
 
@@ -37,8 +33,13 @@ public fun Sequential.saveModelConfiguration(jsonConfigFile: File, isKerasFullyC
 
     val inputShape = this.inputLayer.packedDims.map { it.toInt() }
 
-    (kerasLayers.first().config as LayerConfig).batch_input_shape =
-        listOf(null, inputShape[0], inputShape[1], inputShape[2])
+    val batchInputShape = mutableListOf<Int?>()
+    batchInputShape.add(null)
+    inputShape.forEach {
+        batchInputShape.add(it)
+    }
+
+    (kerasLayers.first().config as LayerConfig).batch_input_shape = batchInputShape
 
     val config = SequentialConfig(name = "", layers = kerasLayers)
     val sequentialConfig = KerasSequentialModel(config = config)

@@ -55,7 +55,9 @@ public class ImageConverter {
         }
 
         private fun imageToByteArray(image: BufferedImage, colorOrder: ColorOrder): ByteArray {
-            val res = (image.raster.dataBuffer as DataBufferByte).data // pixels
+            // println(image.colorModel.colorSpace.type)
+            // println(image.colorModel.colorSpace.isCS_sRGB)
+            val res = (image.raster.dataBuffer as DataBufferByte).data.clone() // pixels
             if (colorOrder == ColorOrder.BGR) {
                 for (i in res.indices) {
                     if (i % 3 == 2) { // swap i and i-2 elements from BGR to RGB
