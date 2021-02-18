@@ -24,7 +24,9 @@ public class KGraph(graphDef: ByteArray, prefix: String) : AutoCloseable {
     public constructor(graphDef: ByteArray) : this(graphDef, "")
 
     /** Internal static TensorFlow graph. */
-    internal var tfGraph: Graph = Graph()
+    public var tfGraph: Graph = Graph()
+
+    //private val saverDef: SaverDef? = null
 
     /** A list of initializer to initialize the trainableVariables. */
     private val optimizerInitializers: MutableList<Assign<*>> = mutableListOf()
@@ -47,6 +49,7 @@ public class KGraph(graphDef: ByteArray, prefix: String) : AutoCloseable {
         } else {
             tfGraph.importGraphDef(graphDef, prefix)
         }
+
     }
 
     /**

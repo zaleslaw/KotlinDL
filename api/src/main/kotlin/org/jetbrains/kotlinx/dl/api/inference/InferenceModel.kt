@@ -14,14 +14,16 @@ import org.jetbrains.kotlinx.dl.api.core.util.defaultAssignOpName
 import org.jetbrains.kotlinx.dl.api.core.util.defaultInitializerOpName
 import org.jetbrains.kotlinx.dl.api.inference.savedmodel.Input
 import org.jetbrains.kotlinx.dl.api.inference.savedmodel.Output
-import org.tensorflow.Session
-import org.tensorflow.Shape
-import org.tensorflow.Tensor
+import org.tensorflow.*
 import org.tensorflow.op.Ops
+import org.tensorflow.op.core.Placeholder
+import org.tensorflow.types.UInt8
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.NotDirectoryException
 import java.util.*
+import kotlin.collections.HashMap
+
 
 /**
  * Basic class for model inference.
@@ -54,6 +56,70 @@ public open class InferenceModel : AutoCloseable {
 
     /** Logger. */
     private val logger = KotlinLogging.logger {}
+
+
+    protected fun addVariableSaver() {
+        tf = Ops.create(kGraph.tfGraph).withSubScope("save")
+        val varNames: MutableList<String> = mutableListOf()
+        val varOutputs: MutableList<org.tensorflow.Output<*>> = mutableListOf()
+        val varTypes: MutableList<DataType> = mutableListOf()
+
+        val iter: Iterator<Operation> = kGraph.tfGraph.operations()
+        while (iter.hasNext()) {
+            val op = iter.next()
+            if (op.type() == "VariableV2") {
+                varNames.add(op.name())
+                varOutputs.add(op.output<Any>(0))
+                varTypes.add(op.output<Any>(0).dataType())
+            }
+        }
+
+
+        val varNamesTensor = tf.constant(varNames.toTypedArray(), String::class.java)
+        val varSlices: Operand<String> = tf.zerosLike(varNamesTensor)
+
+        val saveFilename: Placeholder<String> = tf.placeholder(String::class.javaObjectType)
+
+        val dtypes = mutableListOf<Class<*>>()
+        for (i in dtypes.indices) {
+            dtypes[i] = toClass(varTypes[i])
+        }
+
+
+        val saveVariables = tf.train.save(
+            saveFilename,
+            varNamesTensor,
+            varSlices,
+            varOutputs
+        )
+        val restoreVariables = tf.train.restore(
+            saveFilename,
+            varNamesTensor,
+            varSlices,
+            dtypes
+        )
+
+        val restoreOps: MutableList<Operand<*>> = ArrayList(varOutputs.size)
+        for (i in varOutputs.indices) {
+            val output = restoreVariables.tensors()[i] as Operand<Any>
+            restoreOps.add(tf.assign(varOutputs[i] as Operand<Any>, output))
+        }
+        val restoreAll = tf.withControlDependencies(restoreOps).noOp()
+    }
+
+    private fun toClass(dataType: DataType): Class<*> {
+        val typesToClasses: MutableMap<DataType, Class<*>> = HashMap()
+
+        typesToClasses[DataType.FLOAT] = Float::class.java
+        typesToClasses[DataType.DOUBLE] = Double::class.java
+        typesToClasses[DataType.INT32] = Int::class.java
+        typesToClasses[DataType.UINT8] = UInt8::class.java
+        typesToClasses[DataType.INT64] = Long::class.java
+        typesToClasses[DataType.BOOL] = Boolean::class.java
+        typesToClasses[DataType.STRING] = String::class.java
+
+        return typesToClasses[dataType]!!
+    }
 
     public companion object {
         /**
@@ -416,3 +482,4 @@ public open class InferenceModel : AutoCloseable {
         return result
     }
 }
+

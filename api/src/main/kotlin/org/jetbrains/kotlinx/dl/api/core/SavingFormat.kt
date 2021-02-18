@@ -14,5 +14,8 @@ public enum class SavingFormat {
     TF_GRAPH,
 
     /** Saves model as a list of layers in .json file format and variables in .txt file format. */
-    JSON_CONFIG_CUSTOM_VARIABLES
+    JSON_CONFIG_CUSTOM_VARIABLES,
+
+
+    TF_SAVED_MODEL
 }

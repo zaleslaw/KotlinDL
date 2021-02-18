@@ -98,6 +98,7 @@ public class Sequential(input: Input, vararg layers: Layer) : TrainableModel() {
         kGraph = KGraph(Graph().toGraphDef())
         tf = Ops.create(kGraph.tfGraph)
         session = Session(kGraph.tfGraph)
+        addVariableSaver()
     }
 
     public companion object {
