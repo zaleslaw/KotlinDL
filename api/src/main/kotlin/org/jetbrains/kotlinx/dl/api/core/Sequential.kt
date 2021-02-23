@@ -54,8 +54,14 @@ public class Sequential(input: Input, vararg layers: Layer) : TrainableModel() {
     /** Input layer. */
     public val inputLayer: Input = input
 
+    /** Input layer. */
+    private val hiddenInput: Input = input.clone() // TODO: need deep cloning
+
     /** The bunch of layers. */
     public val layers: List<Layer> = listOf(*layers)
+
+    /** The bunch of layers. */
+    private val inferenceLayers: List<Layer> = listOf(*layers.clone()) // TODO: need deep cloning
 
     /** Layers indexed by name. */
     private var layersByName: Map<String, Layer> = mapOf()
@@ -98,6 +104,10 @@ public class Sequential(input: Input, vararg layers: Layer) : TrainableModel() {
         kGraph = KGraph(Graph().toGraphDef())
         tf = Ops.create(kGraph.tfGraph)
         session = Session(kGraph.tfGraph)
+
+        inferenceKGraph = KGraph(Graph().toGraphDef())
+        inferenceTF = Ops.create(inferenceKGraph.tfGraph)
+        inferenceSession = Session(inferenceKGraph.tfGraph)
     }
 
     public companion object {
@@ -261,6 +271,7 @@ public class Sequential(input: Input, vararg layers: Layer) : TrainableModel() {
 
         layers.forEach {
             it.build(tf, kGraph, inputShape)
+            it.build(inferenceTF, inferenceKGraph, inputShape)
 
             inputShape = it.computeOutputShape(inputShape)
             val tensorShape = TensorShape(inputShape)

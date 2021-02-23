@@ -32,11 +32,18 @@ public open class InferenceModel : AutoCloseable {
     /** The namespace wrapper for all TensorFlow graph operations. */
     protected lateinit var tf: Ops
 
+    protected lateinit var inferenceTF: Ops
+
     /** TensorFlow session. */
     internal lateinit var session: Session
 
+    internal lateinit var inferenceSession: Session
+
     /** TensorFlow wrapped computational graph. */
     public lateinit var kGraph: KGraph
+        protected set
+
+    public lateinit var inferenceKGraph: KGraph
         protected set
 
     /** Input operand. */
@@ -163,7 +170,9 @@ public open class InferenceModel : AutoCloseable {
     }
 
     override fun toString(): String {
-        return "Model contains $kGraph"
+        return "TensorFlow Training Graph + \n +  $kGraph + \n" +
+                " + and inference graph + \n" +
+                " + $inferenceKGraph"
     }
 
     /** Closes internal resources: session and kGraph. */
