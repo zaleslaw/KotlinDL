@@ -103,6 +103,9 @@ fun main() {
     val (train, test) = fashionMnist()
 
     model.use {
+        it.getLayer("1").isTrainable = false
+        it.getLayer("6").isTrainable = false
+
         it.compile(
             optimizer = Adam(),
             loss = Losses.SOFT_MAX_CROSS_ENTROPY_WITH_LOGITS,
