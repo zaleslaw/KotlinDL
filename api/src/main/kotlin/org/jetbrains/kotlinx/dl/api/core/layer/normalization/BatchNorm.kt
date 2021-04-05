@@ -118,8 +118,15 @@ public class BatchNorm(
         val varianceIdentity = tf
             .withControlDependencies(listOf(varianceUpdate))
             .identity(batchVariance)
+
+        val ifNotTrainingModeBranch = tf.withName("BN_INFERENCE")
+            .identity(batchNorm(tf, input, gamma, beta, movingMean, movingVariance, tf.constant(epsilon.toFloat())))
+
+        //val ifTrainingModeBranch = prepareTrainingBatchNormGraph(input, tf, numberOfLosses)
+        //return tf.selectV2(isTraining, ifTrainingModeBranch, ifNotTrainingModeBranch)
+
 // to compile two branches together https://github.com/JetBrains/KotlinDL/pull/42/commits/e85fe639927184f24ca29abfaf8eea5b03b0c693#diff-ddfcef9b5174db09e79fd84375dacec929e42d24a9f4940f9f9fd4e037c9b13c we need grads for the SelectV2 operation
-        return tf.withName("BN_TRAINING")
+        val trainingModeBranch = tf.withName("BN_TRAINING")
             .identity(
                 batchNorm(
                     tf,
@@ -131,6 +138,11 @@ public class BatchNorm(
                     tf.constant(epsilon.toFloat())
                 )
             )
+        //https://stackoverflow.com/questions/47107994/how-to-use-the-function-merge-and-switch-of-tensorflow
+        //https://www.tensorflow.org/api_docs/cc/class/tensorflow/ops/merge#classtensorflow_1_1ops_1_1_merge
+        // http://download.tensorflow.org/paper/white_paper_tf_control_flow_implementation_2017_11_1.pdf
+        tf.switchCond(trainingModeBranch, tf.constant(true))
+        return tf.switchCond(ifNotTrainingModeBranch, tf.constant(false)) as Operand<Float>
     }
 
     private fun batchNorm(
