@@ -16,6 +16,8 @@ import org.jetbrains.kotlinx.dl.api.core.util.*
 import org.tensorflow.Operand
 import org.tensorflow.Shape
 import org.tensorflow.op.Ops
+import org.tensorflow.op.core.ReduceSum
+import org.tensorflow.op.core.Squeeze
 import org.tensorflow.op.core.Variable
 
 /** This layer is not trainable and does not updates its weights. */
@@ -86,8 +88,49 @@ public class BatchNorm(
         isTraining: Operand<Boolean>,
         numberOfLosses: Operand<Float>?
     ): Operand<Float> {
-        return tf.withName("BatchNorm")
-            .identity(batchNorm(tf, input, gamma, beta, movingMean, movingVariance, tf.constant(epsilon.toFloat())))
+        val axes = calculateAxes(input)
+
+        val axesOp = tf.constant(axes)
+
+        val batchMeanSum = tf.reduceSum(
+            input,
+            axesOp,
+            ReduceSum.keepDims(java.lang.Boolean.TRUE)
+        )
+        var batchMean: Operand<Float> = tf.math.divNoNan(batchMeanSum, numberOfLosses)
+
+        val batchVarianceSum = tf.reduceSum(
+            tf.math.squaredDifference(
+                input, tf.stopGradient(batchMean)
+            ), axesOp, ReduceSum.keepDims(java.lang.Boolean.TRUE)
+        )
+        var batchVariance: Operand<Float> = tf.math.divNoNan(batchVarianceSum, numberOfLosses)
+
+        batchMean = tf.squeeze(batchMean, Squeeze.axis(axes.map { it.toLong() }))
+        batchVariance = tf.squeeze(batchVariance, Squeeze.axis(axes.map { it.toLong() }))
+
+        val meanUpdate = assignMovingAverage(tf, movingMean, batchMean, momentum)
+        val varianceUpdate = assignMovingAverage(tf, movingVariance, batchVariance, momentum)
+
+        val meanIdentity = tf
+            .withControlDependencies(listOf(meanUpdate))
+            .identity(batchMean)
+        val varianceIdentity = tf
+            .withControlDependencies(listOf(varianceUpdate))
+            .identity(batchVariance)
+// to compile two branches together https://github.com/JetBrains/KotlinDL/pull/42/commits/e85fe639927184f24ca29abfaf8eea5b03b0c693#diff-ddfcef9b5174db09e79fd84375dacec929e42d24a9f4940f9f9fd4e037c9b13c we need grads for the SelectV2 operation
+        return tf.withName("BN_TRAINING")
+            .identity(
+                batchNorm(
+                    tf,
+                    input,
+                    gamma,
+                    beta,
+                    meanIdentity,
+                    varianceIdentity,
+                    tf.constant(epsilon.toFloat())
+                )
+            )
     }
 
     private fun batchNorm(
@@ -107,6 +150,34 @@ public class BatchNorm(
             tf.math.mul(x, inv),
             tf.math.sub(beta, tf.math.mul(movingMean, inv))
         )
+    }
+
+    private fun calculateAxes(input: Operand<Float>): IntArray {
+        val size = input.asOutput().shape().numDimensions() - 1
+        val axes = IntArray(size)
+        for (i in 0 until size) {
+            axes[i] = i
+        }
+        return axes
+    }
+
+
+    private fun assignMovingAverage(
+        tf: Ops,
+        variable: Operand<Float>,
+        value: Operand<Float>,
+        momentum: Double
+    ): Operand<Float> {
+        val updateDelta = tf.math.mul(
+            tf.math.sub(variable, value),
+            tf.math.sub(tf.constant(1.0f), tf.constant(momentum.toFloat()))
+        )
+        return tf.withName("OGOGOGOG")
+            /* .withSubScope(
+                 //"${variable.ref().op().name()}_assign_moving_average"
+                 "AssignMovingAvg"
+             )*/
+            .assignSub(variable, updateDelta)
     }
 
     // TODO: return real weights
