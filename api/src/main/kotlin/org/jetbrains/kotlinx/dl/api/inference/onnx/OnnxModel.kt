@@ -70,6 +70,7 @@ public open class OnnxModel : AutoCloseable {
         val tensor = OnnxTensor.createTensor(env, preparedData, shape)
         val output = session.run(Collections.singletonMap(session.inputNames.toList()[0], tensor))
         return output[0].value
+        // ((((output as Result).list as java.util.ArrayList<*>)[0] as OnnxTensor).info as TensorInfo).shape = [1, 7, 7, 2048]
     }
 
 

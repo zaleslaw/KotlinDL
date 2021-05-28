@@ -21,6 +21,9 @@ public class TensorPreprocessing {
     /** */
     public lateinit var sharpen: Sharpen
 
+    /** */
+    public lateinit var onnx: ONNXModelPreprocessor
+
     /** True, if [rescaling] is initialized. */
     public val isRescalingInitialized: Boolean
         get() = ::rescaling.isInitialized
@@ -28,6 +31,11 @@ public class TensorPreprocessing {
     /** True, if [sharpen] is initialized. */
     public val isSharpenInitialized: Boolean
         get() = ::sharpen.isInitialized
+
+
+    /** True, if [onnx] is initialized. */
+    public val isOnnxInitialized: Boolean
+        get() = ::onnx.isInitialized
 }
 
 /** */
@@ -38,6 +46,11 @@ public fun TensorPreprocessing.rescale(block: Rescaling.() -> Unit) {
 /** */
 public fun TensorPreprocessing.sharpen(block: Sharpen.() -> Unit) {
     sharpen = Sharpen().apply(block)
+}
+
+/** */
+public fun TensorPreprocessing.onnx(block: ONNXModelPreprocessor.() -> Unit) {
+    onnx = ONNXModelPreprocessor(null).apply(block)
 }
 
 

@@ -88,6 +88,9 @@ public class Preprocessing {
 
             if (tensorPreprocessingStage.isSharpenInitialized)
                 tensor = tensorPreprocessingStage.sharpen.apply(tensor, shape)
+
+            if (tensorPreprocessingStage.isOnnxInitialized)
+                tensor = tensorPreprocessingStage.onnx.apply(tensor, shape)
         }
 
         return Pair(tensor, shape)
