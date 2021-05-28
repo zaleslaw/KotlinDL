@@ -91,6 +91,14 @@ public class Preprocessing {
 
             if (tensorPreprocessingStage.isOnnxInitialized)
                 tensor = tensorPreprocessingStage.onnx.apply(tensor, shape)
+            //TODO: obtain shape
+
+            if (tensorPreprocessingStage.isSwapAxisInitialized)
+                tensor = tensorPreprocessingStage.swapaxis.apply(tensor, shape)
+            //TODO: obtain shape
+
+            if (tensorPreprocessingStage.isPyTorchInitialized)
+                tensor = tensorPreprocessingStage.pyTorch.apply(tensor, shape)
         }
 
         return Pair(tensor, shape)

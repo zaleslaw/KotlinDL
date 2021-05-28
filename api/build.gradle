@@ -26,6 +26,11 @@ nexusStaging {
     repositoryDescription "kotlinx.kotlindl staging repository, version: $version"
 }
 
+repositories {
+    mavenCentral()
+    jcenter() // for pytorch
+}
+
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compile 'com.microsoft.onnxruntime:onnxruntime:1.7.0'
@@ -34,6 +39,7 @@ dependencies {
     compile 'io.github.microutils:kotlin-logging:2.0.4' // for logging
     compile 'io.jhdf:jhdf:0.5.7' // for hdf5 parsing
     compile 'com.beust:klaxon:5.5'
+    compile 'org.pytorch:pytorch_java_only:1.8.0'
     testCompile 'ch.qos.logback:logback-classic:1.2.3'
     testCompile 'org.junit.jupiter:junit-jupiter-api:5.5.2'
     testCompile 'org.junit.jupiter:junit-jupiter-engine:5.5.2'

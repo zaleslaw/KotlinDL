@@ -23,6 +23,9 @@ public enum class ModelType(public val modelName: String) {
     ResNet_50("resnet50"),
 
     /** */
+    ResNet_50_TORCH("resnet50_torch"),
+
+    /** */
     ResNet_101("resnet101"),
 
     /** */

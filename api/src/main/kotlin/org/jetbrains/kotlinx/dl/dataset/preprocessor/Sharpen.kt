@@ -21,6 +21,7 @@ public class Sharpen(public var modelType: ModelType = ModelType.VGG_16) : Prepr
             ModelType.VGG_16 -> preprocessInput(data, tensorShape, inputType = InputType.CAFFE)
             ModelType.VGG_19 -> preprocessInput(data, tensorShape, inputType = InputType.CAFFE)
             ModelType.ResNet_50 -> preprocessInput(data, tensorShape, inputType = InputType.CAFFE)
+            ModelType.ResNet_50_TORCH -> preprocessInput(data, tensorShape, inputType = InputType.TORCH)
             ModelType.ResNet_101 -> preprocessInput(data, tensorShape, inputType = InputType.CAFFE)
             ModelType.ResNet_152 -> preprocessInput(data, tensorShape, inputType = InputType.CAFFE)
             ModelType.ResNet_50_v2 -> preprocessInput(data, inputType = InputType.TF)

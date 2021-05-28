@@ -16,6 +16,7 @@ public interface Preprocessor {
      *
      * @return Transformed data.
      */
+    // TODO: return result and shape
     public fun apply(data: FloatArray, inputShape: ImageShape): FloatArray // move to shape
 }
 

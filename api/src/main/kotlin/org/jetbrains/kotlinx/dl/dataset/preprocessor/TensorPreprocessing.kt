@@ -24,6 +24,12 @@ public class TensorPreprocessing {
     /** */
     public lateinit var onnx: ONNXModelPreprocessor
 
+    /** */
+    public lateinit var swapaxis: SwapAxis
+
+    /** */
+    public lateinit var pyTorch: PyTorchModelPreprocessor
+
     /** True, if [rescaling] is initialized. */
     public val isRescalingInitialized: Boolean
         get() = ::rescaling.isInitialized
@@ -36,6 +42,14 @@ public class TensorPreprocessing {
     /** True, if [onnx] is initialized. */
     public val isOnnxInitialized: Boolean
         get() = ::onnx.isInitialized
+
+    /** True, if [swapaxis] is initialized. */
+    public val isSwapAxisInitialized: Boolean
+        get() = ::swapaxis.isInitialized
+
+    /** True, if [pyTorch] is initialized. */
+    public val isPyTorchInitialized: Boolean
+        get() = ::pyTorch.isInitialized
 }
 
 /** */
@@ -53,6 +67,15 @@ public fun TensorPreprocessing.onnx(block: ONNXModelPreprocessor.() -> Unit) {
     onnx = ONNXModelPreprocessor(null).apply(block)
 }
 
+/** */
+public fun TensorPreprocessing.pytorch(block: PyTorchModelPreprocessor.() -> Unit) {
+    pyTorch = PyTorchModelPreprocessor(null).apply(block)
+}
+
+/** */
+public fun TensorPreprocessing.swapaxis(block: SwapAxis.() -> Unit) {
+    swapaxis = SwapAxis(0,2).apply(block)
+}
 
 
 
